@@ -26,6 +26,23 @@ python -m mlf_assistant.admin
 
 Set `MLF_ADMIN_USERNAME` and the generated `MLF_ADMIN_PASSWORD_HASH` before initializing the database. Additional admin and officer accounts can then be created in the protected dashboard. Dashboard sessions expire after 30 minutes and are rechecked against the current account role and activation status. Administrative API endpoints use HTTP Basic and must be served behind HTTPS. Configure `MLF_ALLOWED_ORIGINS` with the exact official website origins before browser integration; CORS is disabled when the list is empty.
 
+## Deploy with Supabase and Streamlit Cloud
+
+1. Create a Supabase project and enable the `vector` extension in the project's database settings.
+2. In Supabase, select the **Session pooler** connection string and require SSL. Use the URI from Supabase as `MLF_DATABASE_URL`; do not use `localhost` or commit the database password. The app accepts both `postgresql://` and `postgresql+psycopg://` URLs.
+3. For one-time schema setup, put the Supabase URL, `MLF_ADMIN_USERNAME`, and generated `MLF_ADMIN_PASSWORD_HASH` in your local, git-ignored `.env`, then run `.venv/bin/mlf-assistant-init-db`. Use a database role allowed to create the required tables and extension.
+4. In Streamlit Community Cloud, deploy `app.py` from the repository's `main` branch. Add the same database and admin values under **App settings > Secrets**, using the exact setting names, for example:
+
+	```toml
+	MLF_DATABASE_URL = "postgresql://..."
+	MLF_ADMIN_USERNAME = "admin"
+	MLF_ADMIN_PASSWORD_HASH = "pbkdf2_sha256$..."
+	```
+
+	Add the required `MLF_LLM_PROVIDER`, `MLF_LLM_MODEL`, and `MLF_LLM_API_KEY` values there as well. Saving Secrets restarts the app. Never put credentials in the repository or send them in chat.
+
+The environment-provisioned admin can authenticate without an account-table lookup when the submitted username matches `MLF_ADMIN_USERNAME` and a password or hash is configured. The administration workspace still requires a reachable, initialized Supabase database. If sign-in reports that the account database is unavailable, verify the deployed revision, exact Secrets key names, username, database URL, and Supabase network/SSL settings.
+
 ## Architecture
 
 - `app.py`: Streamlit bilingual public chat, browser voice controls, citations, consent-based escalation, and restricted operations dashboard.
