@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run MLF Chatbot",
+			"type": "shell",
+			"command": "/workspaces/MLF_CHATBOT/.venv/bin/streamlit",
+			"args": [
+				"run",
+				"app.py",
+				"--server.address",
+				"0.0.0.0",
+				"--server.port",
+				"8501"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

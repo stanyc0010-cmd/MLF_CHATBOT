@@ -1,0 +1,46 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: mlf_assistant
+      POSTGRES_USER: ${MLF_DB_USER:-mlf}
+      POSTGRES_PASSWORD: ${MLF_DB_PASSWORD:?Set MLF_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ministry-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  web:
+    build: .
+    env_file: .env
+    environment:
+      MLF_DATABASE_URL: postgresql+psycopg://${MLF_DB_USER:-mlf}:${MLF_DB_PASSWORD}@db:5432/mlf_assistant
+    command: ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+    ports:
+      - "8501:8501"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      MLF_DATABASE_URL: postgresql+psycopg://${MLF_DB_USER:-mlf}:${MLF_DB_PASSWORD}@db:5432/mlf_assistant
+    command: ["uvicorn", "mlf_assistant.api:app", "--host=0.0.0.0", "--port=8000"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  ministry-data:

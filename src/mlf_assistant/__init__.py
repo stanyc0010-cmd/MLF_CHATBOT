@@ -1,0 +1,1 @@
+"""Ministry assistant backend."""
