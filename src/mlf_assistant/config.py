@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -32,6 +33,23 @@ class Settings(BaseSettings):
     llm_output_cost_per_million: float | None = None
 
 
+def _streamlit_secret_values() -> dict[str, object]:
+    try:
+        import streamlit as st
+
+        return {
+            key[4:].lower(): value
+            for key, value in st.secrets.items()
+            if key.startswith("MLF_") and key[4:].lower() in Settings.model_fields
+        }
+    except Exception:
+        return {}
+
+
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    secret_values = _streamlit_secret_values()
+    for field in Settings.model_fields:
+        if f"MLF_{field.upper()}" in os.environ:
+            secret_values.pop(field, None)
+    return Settings(**secret_values)
