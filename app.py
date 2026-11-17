@@ -289,7 +289,7 @@ def admin_page() -> None:
             st.dataframe([
                 {key: item.get(key) for key in ("reference", "category", "department", "language", "status", "created_at")}
                 for item in enquiries[:20]
-            ], use_container_width=True, hide_index=True)
+            ], width="stretch", hide_index=True)
         else:
             st.info("No enquiries have been recorded.")
         col_pdf, col_xlsx = st.columns(2)
@@ -319,7 +319,7 @@ def admin_page() -> None:
                         f"{item['ingestion_status']} · effective {item['effective_date'] or 'not set'} · "
                         f"review {item['review_date'] or 'not set'}"
                     )
-                with dates_action.popover("Dates", use_container_width=True):
+                with dates_action.popover("Dates", width="stretch"):
                     with st.form(f"document_dates_{document_id}"):
                         effective_date = st.date_input(
                             "Effective date", value=item["effective_date"]
@@ -352,17 +352,17 @@ def admin_page() -> None:
                     help="Replace this active document with a newly uploaded version."
                     if can_replace
                     else "Only active, indexed documents can be replaced.",
-                    use_container_width=True,
+                    width="stretch",
                 ):
                     st.session_state["replacement_target_id"] = document_id
                     st.rerun()
-                with delete_action.popover("Delete", use_container_width=True):
+                with delete_action.popover("Delete", width="stretch"):
                     st.warning(f"Permanently delete {item['title']} and its indexed content?")
                     if st.button(
                         "Delete permanently",
                         key=f"confirm_delete_document_{document_id}",
                         type="primary",
-                        use_container_width=True,
+                        width="stretch",
                     ):
                         try:
                             db.delete_document(document_id, st.session_state.admin_user)
@@ -483,7 +483,7 @@ def admin_page() -> None:
             st.error("The account database is unavailable. Account management is disabled.")
             users = []
             account_db_available = False
-        st.dataframe(users, use_container_width=True, hide_index=True)
+        st.dataframe(users, width="stretch", hide_index=True)
         with st.form("create_user"):
             new_username = st.text_input("Username", max_chars=80)
             new_password = st.text_input("Temporary password", type="password", help="At least 14 characters.")
@@ -555,7 +555,7 @@ def _render_dashboard_charts(analytics: dict) -> None:
             return
         spec["height"] = height
         st.vega_lite_chart(
-            pd.DataFrame(data), spec, use_container_width=True
+            pd.DataFrame(data), spec, width="stretch"
         )
 
     activity_col, category_col = st.columns(2)
@@ -675,7 +675,7 @@ def _officer_inbox() -> None:
     st.dataframe([
         {key: item.get(key) for key in ("reference", "category", "department", "language", "status", "created_at")}
         for item in enquiries
-    ], use_container_width=True, hide_index=True)
+    ], width="stretch", hide_index=True)
     selected_index = st.selectbox(
         "Enquiry reference", range(len(enquiries)),
         format_func=lambda index: f"{enquiries[index]['reference']} · {enquiries[index]['department']} · {enquiries[index]['status']}",
